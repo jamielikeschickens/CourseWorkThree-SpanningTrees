@@ -27,7 +27,6 @@ public class SpanningTreeTests {
 		addEdgesToGraph(edges);
 		assertEquals(expectedTotalWeight, calculateTotalEdgeWeightInGraph(), maxError);
 	}
-	
 	@SuppressWarnings("unused")
 	private Object[] parametersForTotalWeightOfEdges() {
 		return $(
@@ -41,25 +40,82 @@ public class SpanningTreeTests {
 	
 	@Test
 	@Parameters
-	public void costOfRoadInHours(double hoursTaken, Edge edge) throws Exception {
-		assertEquals(hoursTaken, calculateCostOfEdge(edge), maxError);
+	public void costToLayCableInDisruptedHours(double hoursTaken, Edge edge) throws Exception {
+		SpanningTree spanningTree = new SpanningTree();
+		assertEquals(hoursTaken, spanningTree.calculateCostInDisruptedHoursToLayCable(edge), maxError);
 	}
-	
 	@SuppressWarnings("unused")
-	private Object[] parametersForCostOfRoadInHours() {
+	private Object[] parametersForCostToLayCableInDisruptedHours() {
 		return $(
 				$(0.2, createNewEdge(1, Edge.EdgeType.LocalRoad)),
-				$(0.4, createNewEdge(2, Edge.EdgeType.LocalRoad))
+				$(0.4, createNewEdge(2, Edge.EdgeType.LocalRoad)),
+				$(0.5, createNewEdge(1, Edge.EdgeType.MainRoad)),
+				$(1.0, createNewEdge(2, Edge.EdgeType.MainRoad)),
+				$(1.0, createNewEdge(1, Edge.EdgeType.Underground))
 				);
 	}
-
-	private double calculateCostOfEdge(Edge edge) {
-		// Note to self:
-		// This is useful because maybe calculateCostOfEdge should be private
-		// in which case we'd need to create a new graph here and add the edge,
-		// then pass that into a SpanningTree and calculate the cost of all the edges
-		return new SpanningTree().calculateCostOfEdge(edge);
+	
+	@Test
+	@Parameters
+	public void timeTakenToLayCable(double expectedTimeTaken, Edge edge) throws Exception {
+		SpanningTree spanningTree = new SpanningTree();
+		assertEquals(expectedTimeTaken, spanningTree.calculateTimeInDaysTakenToLayCable(edge), maxError);
 	}
+	@SuppressWarnings("unused")
+	private Object[] parametersForTimeTakenToLayCable() {
+		return $(
+				$(1, createNewEdge(0.2, Edge.EdgeType.LocalRoad)),
+				$(2, createNewEdge(0.4, Edge.EdgeType.LocalRoad)),
+				$(1, createNewEdge(0.6, Edge.EdgeType.MainRoad)),
+				$(2, createNewEdge(1.2, Edge.EdgeType.MainRoad)),
+				$(1, createNewEdge(0.9, Edge.EdgeType.Underground)),
+				$(2, createNewEdge(1.8, Edge.EdgeType.Underground))
+				);
+	}
+	
+	@Test
+	@Parameters
+	public void monetaryCostToLayCable(double expectedCostInPounds, Edge edge) throws Exception {
+		SpanningTree spanningTree = new SpanningTree();
+		assertEquals(expectedCostInPounds, spanningTree.calculateCostInPoundsToLayCable(edge), maxError);
+	}
+	@SuppressWarnings("unused")
+	private Object[] parametersForMonetaryCostToLayCable() {
+		return $(
+				$(5000, createNewEdge(0, Edge.EdgeType.LocalRoad)),
+				$(9500, createNewEdge(1, Edge.EdgeType.LocalRoad)),
+				$(14000, createNewEdge(2, Edge.EdgeType.LocalRoad)),
+				$(4000, createNewEdge(1, Edge.EdgeType.MainRoad)),
+				$(0, createNewEdge(0, Edge.EdgeType.MainRoad)),
+				$(1000, createNewEdge(1, Edge.EdgeType.Underground)),
+				$(2000, createNewEdge(2, Edge.EdgeType.Underground)),
+				$(0, createNewEdge(0, Edge.EdgeType.Underground))
+				);
+	}
+	
+	@Test
+	@Parameters
+	public void spanningTreeIsMinimumSpanningTree(Graph expectedSpanningTree, Graph graph) throws Exception {
+		assertGraphEdgesEquals(expectedSpanningTree, new SpanningTree(graph).calculateMinimalSpanningTree());
+	}
+	@SuppressWarnings("unused")
+	private Object[] parametersForSpanningTreeIsMinimumSpanningTree() {
+		return $(
+				$(new Graph(), new Graph())
+				);
+	}
+	
+	private void assertGraphEdgesEquals(Graph expectedSpanningTree,
+			Graph actualSpanningTree) {
+		for (Edge edge : expectedSpanningTree.edges()) {
+			actualSpanningTree.edges().contains(edge);
+		}
+		
+		for (Edge edge : actualSpanningTree.edges()) {
+			expectedSpanningTree.edges().contains(edge);
+		}
+	}
+
 	
 	private void addEdgesToGraph(List<Edge> edges) {
 		for (Edge edge : edges) {
