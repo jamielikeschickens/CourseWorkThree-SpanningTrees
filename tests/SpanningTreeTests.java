@@ -84,7 +84,7 @@ public class SpanningTreeTests {
 		return params;
 	}
 	
-	private Object[] $(Object ob, List<Edge> list) {
+	private <T> Object[] $(Object ob, List<T> list) {
 		Object[] array = {ob, list};
 		return array;
 	}
