@@ -1,4 +1,7 @@
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class SpanningTree {
 	private Graph graph;
@@ -22,10 +25,46 @@ public class SpanningTree {
 
 			println(output);
 		} else if (isPart(args, 2)) {
-			println("Part 2 not done");
+			println("Price: £" + spanningTree.calculateTotalCostInPounds());
+			println("Hours of Disrupted Travel: " + spanningTree.calculateTotalCostInDisruptedHours() + "h");
+			SimpleDateFormat currentDateFormat = new SimpleDateFormat("dd MMMM yyyy HH:mm");
+			Date initalDate = new Date();
+			try {
+				initalDate = currentDateFormat.parse("15 February 2014 00:00");
+			} catch (ParseException e) {
+				println("Could not parse date");
+			}
+			
+			Date completionDate = new Date((long) (initalDate.getTime() + (86400000 * spanningTree.calculateTotalDaysToComplete())));
+			SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE dd MMMM yyyy HH:mm");
+			println("Completion Date: " + dateFormat.format(completionDate));
 		}
 	}
 
+	public double calculateTotalCostInPounds() {
+		double sum = 0;
+		for (Edge edge : graph.edges()) {
+			sum += calculateCostInPoundsToLayCable(edge);
+		}
+		return sum;
+	}
+	
+	public double calculateTotalCostInDisruptedHours() {
+		double hours = 0;
+		for (Edge edge : graph.edges()) {
+			hours += calculateCostInDisruptedHoursToLayCable(edge);
+		}
+		return hours;
+	}
+	
+	public double calculateTotalDaysToComplete() {
+		double days = 0;
+		for (Edge edge : graph.edges()) {
+			days += calculateTimeInDaysTakenToLayCable(edge);
+		}
+		return days;
+	}
+	
 	public double calculateTotalEdgeWeight() {
 		double totalWeight = 0;
 		for (Edge edge : graph.edges()) {
