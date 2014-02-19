@@ -1,14 +1,10 @@
-import java.awt.geom.Area;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
-
-import javax.swing.text.html.MinimalHTMLWriter;
 
 public class SpanningTree {
 	private Graph graph;
@@ -25,16 +21,33 @@ public class SpanningTree {
 		Graph graph = readGraphFromFile(args[1]);
 		SpanningTree spanningTree = new SpanningTree(graph);
 		if (isPart(args, 1)) {
-			double totalCable = spanningTree.calculateTotalEdgeWeight();
+			double totalCable = spanningTree.calculateTotalEdgeWeight() * 1000; // * 1000 for km to m
 			String output = "Total Cable Needed: " +
 					Double.toString(totalCable) +
-					"m\n";
+					"m";
 
 			println(output);
 		} else if (isPart(args, 2)) {
 			printCostsOfGraph(graph);
 		} else if (isPart(args, 3)) {
-			println("Imminent death");
+			spanningTree.graph = calculateSpanningTree(spanningTree.createMonetaryCostGraph(graph));
+			println("Price: £" + spanningTree.calculateTotalEdgeWeight());
+			spanningTree.graph = calculateSpanningTree(spanningTree.createDisruptedHoursCostGraph(graph));
+			println("Hours of Disrupted Travel: " + spanningTree.calculateTotalEdgeWeight() + "h");
+			
+			spanningTree.graph = calculateSpanningTree(spanningTree.createDaysToCompleteGraph(graph));
+			SimpleDateFormat currentDateFormat = new SimpleDateFormat("dd MMMM yyyy HH:mm");
+			Date initalDate = new Date();
+			try {
+				initalDate = currentDateFormat.parse("15 February 2014 00:00");
+			} catch (ParseException e) {
+				println("Could not parse date");
+			}
+
+			Date completionDate = new Date((long) (initalDate.getTime() + (86400000 * spanningTree.calculateTotalEdgeWeight())));
+			SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE dd MMMM yyyy HH:mm");
+			println("Completion Date: " + dateFormat.format(completionDate));
+
 		}
 	}
 
@@ -48,6 +61,37 @@ public class SpanningTree {
 		return minimalSpanningTree;
 	}
 
+	private Graph createMonetaryCostGraph(Graph graph) {
+		Graph monetaryGraph = new Graph();
+		monetaryGraph.nodes().addAll(graph.nodes());
+		for (Edge edge : graph.edges()) {
+			Edge monetaryEdge = new Edge(edge.id1(), edge.id2(), calculateCostInPoundsToLayCable(edge), edge.type);
+			monetaryGraph.add(monetaryEdge);
+		}
+		return monetaryGraph;
+	}
+	
+	private Graph createDisruptedHoursCostGraph(Graph graph) {
+		Graph disruptedHoursGraph = new Graph();
+		disruptedHoursGraph.nodes().addAll(graph.nodes());
+		for (Edge edge : graph.edges()) {
+			Edge disruptedHoursEdge = new Edge(edge.id1(), edge.id2(), calculateCostInDisruptedHoursToLayCable(edge), edge.type);
+			disruptedHoursGraph.add(disruptedHoursEdge);
+		}
+		return disruptedHoursGraph;
+	}
+	
+	private Graph createDaysToCompleteGraph(Graph graph) {
+		Graph daysToCompleteGraph = new Graph();
+		daysToCompleteGraph.nodes().addAll(graph.nodes());
+		for (Edge edge : graph.edges()) {
+			Edge daysToCompleteEdge = new Edge(edge.id1(), edge.id2(), calculateTimeInDaysTakenToLayCable(edge), edge.type);
+			daysToCompleteGraph.add(daysToCompleteEdge);
+		}
+		return daysToCompleteGraph;
+
+	}
+	
 	private static void printCostsOfGraph(Graph graph) {
 		SpanningTree spanningTree = new SpanningTree(graph);
 		println("Price: £" + spanningTree.calculateTotalCostInPounds());
