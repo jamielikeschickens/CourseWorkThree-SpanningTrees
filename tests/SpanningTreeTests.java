@@ -1,6 +1,8 @@
 import static org.junit.Assert.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import org.junit.Before;
@@ -96,23 +98,91 @@ public class SpanningTreeTests {
 	@Test
 	@Parameters
 	public void spanningTreeIsMinimumSpanningTree(Graph expectedSpanningTree, Graph graph) throws Exception {
-		assertGraphEdgesEquals(expectedSpanningTree, new SpanningTree(graph).calculateMinimalSpanningTree());
+		assertGraphEquals(expectedSpanningTree, new SpanningTree(graph).calculateSpanningTree());
 	}
 	@SuppressWarnings("unused")
 	private Object[] parametersForSpanningTreeIsMinimumSpanningTree() {
 		return $(
-				$(new Graph(), new Graph())
 				);
+	}
+	
+	@Test(expected=NonExistantSpanningTreeException.class)
+	public void spanningTreeOfEmptyGraphThrowsError() throws Exception {
+		Graph emptyGraph = new Graph();
+		SpanningTree spanningTree = new SpanningTree(emptyGraph);
+		spanningTree.calculateSpanningTree();
+	}
+	
+	
+	private Graph createGraph(List<List<Object>> list, List<String> nodes) {
+		Graph graph = new Graph();
+		graph.nodes().addAll(createNodes(nodes));
+		graph.edges().addAll(createEdges(list));
+		return graph;
+	}
+	
+	private List<Node> createNodes(List<String> nodesIds) {
+		List<Node> nodes = new ArrayList<>();
+		for (String nodeId : nodesIds) {
+			nodes.add(new Node(nodeId));
+		}
+		return nodes;
+	}
+	
+	private List<Edge> createEdges(List<List<Object>> list) {
+		List<Edge> edgeList = new ArrayList<>();
+		for (List<?> edgeInfo : list) {
+			edgeList.add(new Edge((String) edgeInfo.get(0), (String) edgeInfo.get(1), 
+						 (Double) edgeInfo.get(2), (Edge.EdgeType) edgeInfo.get(3)));
+		}
+		return edgeList;
+	}
+
+	private void assertGraphEquals(Graph expected, Graph actual) {
+		assertGraphEdgesEquals(expected, actual);
+		assertGraphNodesEquals(expected, actual);
 	}
 	
 	private void assertGraphEdgesEquals(Graph expectedSpanningTree,
 			Graph actualSpanningTree) {
 		for (Edge edge : expectedSpanningTree.edges()) {
-			actualSpanningTree.edges().contains(edge);
+			assertEdgeIsPresentInGraph(edge, actualSpanningTree);;
 		}
 		
 		for (Edge edge : actualSpanningTree.edges()) {
-			expectedSpanningTree.edges().contains(edge);
+			assertEdgeIsPresentInGraph(edge, expectedSpanningTree);;
+		}
+	}
+	
+	private void assertEdgeIsPresentInGraph(Edge edge, Graph graph) {
+		boolean edgesAreEqual = false;
+		for (Edge currentEdge : graph.edges()) {
+			if (edge.id1().equals(currentEdge.id1()) &&
+				edge.id2().equals(currentEdge.id2()) &&
+				edge.weight() == edge.weight()) {
+					edgesAreEqual  = true;
+			}
+		}
+		assertTrue(edgesAreEqual);
+	}
+	
+	private void assertNodeIsPresentInGraph(Node node, Graph graph) {
+		boolean nodesAreEqual = false;
+		for (Node currentNode : graph.nodes()) {
+			if (node.name().equals(currentNode.name())) {
+				nodesAreEqual = true;
+			}
+		}
+		assertTrue(nodesAreEqual);
+	}
+	
+	private void assertGraphNodesEquals(Graph expectedGraph, Graph actualGraph) {
+		for (Node node : expectedGraph.nodes()) {
+			assertNodeIsPresentInGraph(node, actualGraph);;
+		}
+		
+		for (Node node : actualGraph.nodes()) {
+			assertNodeIsPresentInGraph(node, expectedGraph);;
 		}
 	}
 
